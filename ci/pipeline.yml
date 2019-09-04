@@ -1,0 +1,127 @@
+resource_types:
+- name: cf-cli-resource
+  type: docker-image
+  source:
+    repository: nulldriver/cf-cli-resource
+    tag: latest
+
+resources:  
+  - name: repo
+    type: git
+    source:
+      uri: ((git-uri))
+      branch: ((git-branch))
+      paths:
+        - ((git-module))/*
+      username: ((git-username))
+      password: ((git-password))
+  - name: version
+    type: semver
+    source:
+      initial_version: 1.0.0
+      driver: git
+      uri: ((git-ci-uri))
+      branch: master
+      file: ((app))-version
+      git_user: "CI Bot <cibot@foobar.com>"
+      commit_message: "Bump ((app)) to %version%"
+      username: ((git-username))
+      password: ((git-password))
+  - name: github-prerelease
+    type: github-release
+    source:
+      owner: ((github-owner))
+      repository: ((github-repo))
+      access_token: ((github-access-token))
+      release: false
+      pre_release: true
+  - name: cf
+    type: cf
+    source:
+      api: ((cf-api))
+      username: ((cf-username))
+      password: ((cf-password))
+      organization: ((cf-org))
+      space: ((cf-space))
+  - name: cf-env
+    type: cf-cli-resource
+    source:
+      api: ((cf-api))
+      username: ((cf-username))
+      password: ((cf-password))
+      org: ((cf-org))
+      space: ((cf-space))
+
+jobs:
+  - name: build
+    plan:
+    - get: repo
+      trigger: true
+    - get: version
+      params:
+        bump: patch
+    - task: build
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: adoptopenjdk
+            tag: 8-jdk-hotspot
+        params:
+          APP: ((app))
+          MODULE: ((git-module))
+        inputs:
+          - name: repo
+          - name: version
+        outputs:
+          - name: build
+        caches:
+          - path: .m2
+        run:
+          path: "repo/ci/tasks/build.sh"
+    - task: prerelease
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: ubuntu
+            tag: xenial
+        params:
+          APP: ((app))
+          CF_MANIFEST: ((cf-manifest))
+        inputs:
+          - name: repo
+          - name: version
+          - name: build
+        outputs:
+          - name: prerelease
+        run:
+          path: "repo/ci/tasks/prerelease.sh"
+    - put: github-prerelease
+      params:
+        name: prerelease/release
+        tag: version/number
+        tag_prefix: v
+        globs: [ "prerelease/((app))-*.jar", "prerelease/manifest.yml" ]
+    - put: version
+      params:
+        file: version/number
+
+  - name: deploy
+    plan:
+    - get: github-prerelease
+      trigger: true
+      params:
+        globs: [ "((app))-*.jar", "manifest.yml" ]
+    - put: cf
+      params:
+        manifest: github-prerelease/manifest.yml
+        current_app_name: ((app))
+    - put: cf-add-network-policy
+      resource: cf-env
+      params:
+        command: add-network-policy
+        source_app: cloudnativepoll-webui
+        destination_app: cloudnativepoll-backend
