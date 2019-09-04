@@ -1,0 +1,7 @@
+spring:
+  cloud:
+    discovery:
+      enabled: false
+
+poll:
+  backend: http://localhost:9876

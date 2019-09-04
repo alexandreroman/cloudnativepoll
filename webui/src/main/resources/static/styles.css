@@ -1,0 +1,67 @@
+body {
+    font-family: 'Bree Serif', serif;
+    margin: 2em;
+    background: black;
+    color: white;
+}
+
+a {
+    color: white;
+}
+
+h1 {
+    font-size: 120%;
+    margin: 1em 0;
+}
+
+h2 {
+    font-size: 200%;
+}
+
+.poll {
+    margin: 2em 0;
+    display: flex;
+    align-items: center;
+}
+
+ul.choices {
+    text-align: center;
+    list-style: none;
+}
+
+ul.choices li {
+    display: inline-block;
+    padding: 8px;
+    margin: 8px;
+    border: 2px solid darkgray;
+    border-radius: 4px;
+    box-shadow: 0 9px #444;
+}
+
+ul.choices li:active {
+    box-shadow: 0 5px #222;
+    transform: translateY(4px);
+}
+
+ul.choices li:hover {
+    border: 2px solid darkorange;
+    background: #111;
+}
+
+ul.choices a {
+    text-decoration: none;
+}
+
+ul.choices p {
+    margin: 0.5em;
+    padding: 0;
+}
+
+ul.choices .choice {
+    font-size: 140%;
+    font-weight: bold;
+}
+
+ul.choices .result {
+    font-size: 160%;
+}
