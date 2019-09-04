@@ -1,0 +1,39 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+
+spring:
+  cloud:
+    stream:
+      bindings:
+        output:
+          destination: cloudnativepoll.votes
+    services:
+      registrationMethod: direct
+
+feign:
+  hystrix:
+    enabled: true
+
+logging:
+  level:
+    fr:
+      alexandreroman:
+        cloudnativepoll: INFO
+
+poll:
+  backend: ""
+  refresh: 1000
+  question: Who's the most powerful Avenger?
+  choices:
+    - Iron Man
+    - Captain America
+    - Thor
+    - Captain Marvel
+  images:
+    - https://images-na.ssl-images-amazon.com/images/S/cmx-images-prod/Item/24008/DEC100687_1._SX360_QL80_TTD_.jpg
+    - https://images-na.ssl-images-amazon.com/images/S/cmx-images-prod/Item/14688/14688._SX360_QL80_TTD_.jpg
+    - https://images-na.ssl-images-amazon.com/images/S/cmx-images-prod/Item/744376/744376._SX360_QL80_TTD_.jpg
+    - https://images-na.ssl-images-amazon.com/images/S/cmx-images-prod/Item/149220/149220._SX360_QL80_TTD_.jpg

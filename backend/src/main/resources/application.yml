@@ -1,0 +1,28 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+
+spring:
+  cloud:
+    stream:
+      bindings:
+        votes:
+          destination: cloudnativepoll.votes
+          group: voter
+        reset:
+          destination: cloudnativepoll.reset
+          group: instance
+    services:
+      registrationMethod: direct
+
+server:
+  port: ${PORT:8081}
+
+poll:
+  choices:
+    - Iron Man
+    - Captain America
+    - Thor
+    - Captain Marvel
