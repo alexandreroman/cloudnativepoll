@@ -10,11 +10,13 @@ spring:
       bindings:
         votes:
           destination: cloudnativepoll.votes
+          # Use a group to ensure a single app instance handles incoming messages.
           group: voter
         reset:
           destination: cloudnativepoll.reset
           group: instance
     services:
+      # Register this app with Netflix Eureka using the container or host IP address.
       registrationMethod: direct
 
 server:

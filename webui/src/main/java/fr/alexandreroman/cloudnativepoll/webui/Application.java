@@ -112,6 +112,11 @@ class VotesController {
     void castVote(@RequestBody VoteRequest req) {
         log.info("Casting vote: {}", req.getChoice());
         source.output().send(MessageBuilder.withPayload(req).build());
+
+        // All votes are sent using a RabbitMQ queue to backend instances:
+        // when no backend instance is available, votes are not lost since
+        // these will be persisted in the queue until a backend instance becomes
+        // available.
         castedVoteCounter.increment();
     }
 }
@@ -142,6 +147,10 @@ class VoteCache {
 @FeignClient(name = "cloudnativepoll-backend", fallback = BackendClientServiceFallback.class,
         url = "${poll.backend}")
 interface BackendClientService {
+    // OpenFeign is used to generate a runtime REST client: no RestTemplate / WebClient
+    // is used. Circuit breaker support is provided by Hystrix (although there is no
+    // reference to Hystrix in the source code).
+
     @GetMapping("api/v1/votes")
     Map<String, Integer> getResults();
 }

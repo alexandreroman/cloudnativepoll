@@ -11,10 +11,12 @@ spring:
         output:
           destination: cloudnativepoll.votes
     services:
+      # Register this app with Netflix Eureka using the container or host IP address.
       registrationMethod: direct
 
 feign:
   hystrix:
+    # Enable Hystrix (circuit breaker) support in OpenFeign clients.
     enabled: true
 
 logging:

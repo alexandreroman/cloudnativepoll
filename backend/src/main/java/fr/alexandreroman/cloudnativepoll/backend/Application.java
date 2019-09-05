@@ -69,6 +69,7 @@ class VotesController {
 
     @GetMapping("api/v1/votes")
     Map<String, Integer> getResults() {
+        // Get results from the Redis server instance.
         final List<Integer> counters = redis.opsForValue().multiGet(config.getChoices());
         final Map<String, Integer> results = new HashMap<>(counters.size());
         for (int i = config.getChoices().size() - 1; i >= 0; --i) {
@@ -98,6 +99,8 @@ class VoteListener {
             log.warn("Skip invalid vote: {}", vote.getChoice());
             invalidVoteCounter.increment();
         } else {
+            // The Redis server instance is updated as soon as we receive
+            // new vote through the RabbitMQ queue.
             redis.opsForValue().increment(vote.getChoice());
         }
     }
@@ -105,6 +108,7 @@ class VoteListener {
     @StreamListener(Streams.RESET)
     void onReset() {
         log.info("Resetting values");
+        // Just post an empty message to this queue to delete all votes.
         redis.delete(config.getChoices());
     }
 }
@@ -119,6 +123,10 @@ class RedisConfig {
     @Bean
     @Profile("!cloud")
     RedisConnectionFactory redisConnectionFactory() {
+        // We don't need to provide a RedisConnectionFactory when this app
+        // is running in Cloud Foundry: the Spring AutoConfiguration brought by
+        // the Java Buildpack will automatically creates an instance bound to the
+        // Redis service.
         return new LettuceConnectionFactory();
     }
 
