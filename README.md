@@ -1,6 +1,6 @@
 # Cloud-native Poll app
 
-This project is a cloud-native implementation of a poll app, using modern technologies
+This project is a cloud-native implementation of a voting app, using modern technologies
 like [Spring Boot](https://spring.io/projects/spring-boot),
 [Spring Cloud](https://spring.io/projects/spring-cloud) and
 [Spring Data](https://spring.io/projects/spring-data).
@@ -24,12 +24,12 @@ $ ./mvwn clean package
 
 ## Running locally
 
-Run a Redis instance using Docker:
+Start a Redis instance using Docker:
 ```bash
 $ docker run --rm -p 6379:6379/tcp redis:5
 ```
 
-Run a RabbitMQ instance:
+Start a RabbitMQ instance:
 ```bash
 $ docker run --rm -p 5672:5672/tcp -p 15672:15672/tcp rabbitmq:3-management
 ```
@@ -39,7 +39,7 @@ use `guest` / `guest` to sign in.
 
 Start a Netflix Eureka Server instance:
 ```bash
-$ java -jar backend/target/cloudnativepoll-eureka-server.jar
+$ java -jar eureka-server/target/cloudnativepoll-eureka-server.jar
 ```
 
 Start the backend:
@@ -49,7 +49,7 @@ $ java -jar backend/target/cloudnativepoll-backend.jar
 
 Start the frontend:
 ```bash
-$ java -jar backend/target/cloudnativepoll-webui.jar
+$ java -jar frontend/target/cloudnativepoll-webui.jar
 ```
 
 The app is available at http://localhost:8080.
@@ -78,8 +78,8 @@ $ cf add-network-policy cloudnativepoll-webui --destination-app cloudnativepoll-
 
 Note this app is leveraging Container-To-Container (C2C) networking between
 frontend and backend instances. This way you don't need to expose a public route
-for backend instances. All instances are discovered using a Netflix Eureka Server
-provided by the platform.
+for backend instances. All instances are discovered using a platform-managed
+Netflix Eureka Server.
 
 ## Using Concourse to build and deploy this app
 
