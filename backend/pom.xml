@@ -123,4 +123,71 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>azure</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.microsoft.azure</groupId>
+                    <artifactId>spring-cloud-starter-azure-spring-cloud-client</artifactId>
+                    <version>2.1.0-SNAPSHOT</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.microsoft.azure</groupId>
+                    <artifactId>spring-cloud-azure-eventhubs-stream-binder</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter-config</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+                </dependency>
+                <dependency>
+                    <!-- RabbitMQ binder disabled -->
+                    <groupId>org.springframework.cloud</groupId>
+                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <!-- Pivotal Spring Cloud Services disabled -->
+                    <groupId>io.pivotal.spring.cloud</groupId>
+                    <artifactId>spring-cloud-services-starter-config-client</artifactId>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <!-- Pivotal Spring Cloud Services disabled -->
+                    <groupId>io.pivotal.spring.cloud</groupId>
+                    <artifactId>spring-cloud-services-starter-service-registry</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.microsoft.azure</groupId>
+                        <artifactId>spring-cloud-azure-dependencies</artifactId>
+                        <version>1.1.0.RC5</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <repositories>
+                <repository>
+                    <id>nexus-snapshots</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
 </project>

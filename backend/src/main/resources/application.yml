@@ -2,7 +2,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, prometheus
+        include: health, info, prometheus, env
 
 spring:
   cloud:
@@ -18,6 +18,10 @@ spring:
     services:
       # Register this app with Netflix Eureka using the container or host IP address.
       registrationMethod: direct
+  redis:
+    # Connect to a local Redis instance by default.
+    host: localhost
+    port: 6379
 
 server:
   port: ${PORT:8081}

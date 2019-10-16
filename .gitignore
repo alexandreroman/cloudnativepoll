@@ -32,3 +32,4 @@ build/
 
 .DS_Store
 credentials*.yml
+*-secrets.yml

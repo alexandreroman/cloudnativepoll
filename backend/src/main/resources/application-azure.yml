@@ -1,0 +1,9 @@
+spring:
+  cloud:
+    stream:
+      bindings:
+        # Override event hubs names on Azure: '.' is not a valid character.
+        votes:
+          destination: cloudnativepoll-votes
+        reset:
+          destination: cloudnativepoll-reset

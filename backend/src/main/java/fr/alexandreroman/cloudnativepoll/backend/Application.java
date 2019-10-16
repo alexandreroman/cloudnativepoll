@@ -29,9 +29,7 @@ import org.springframework.cloud.stream.annotation.Input;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -70,11 +68,10 @@ class VotesController {
     @GetMapping("api/v1/votes")
     Map<String, Integer> getResults() {
         // Get results from the Redis server instance.
-        final List<Integer> counters = redis.opsForValue().multiGet(config.getChoices());
-        final Map<String, Integer> results = new HashMap<>(counters.size());
-        for (int i = config.getChoices().size() - 1; i >= 0; --i) {
-            final Integer counter = counters.get(i);
-            results.put(config.getChoices().get(i), counter == null ? 0 : counter);
+        final Map<String, Integer> results = new HashMap<>(config.getChoices().size());
+        for (final String choice : config.getChoices()) {
+            final Integer counter = redis.opsForValue().get(choice);
+            results.put(choice, counter == null ? 0 : counter);
         }
         return results;
     }
@@ -120,16 +117,6 @@ class Vote {
 
 @Configuration
 class RedisConfig {
-    @Bean
-    @Profile("!cloud")
-    RedisConnectionFactory redisConnectionFactory() {
-        // We don't need to provide a RedisConnectionFactory when this app
-        // is running in Cloud Foundry: the Spring AutoConfiguration brought by
-        // the Java Buildpack will automatically creates an instance bound to the
-        // Redis service.
-        return new LettuceConnectionFactory();
-    }
-
     @Bean
     RedisTemplate<String, Integer> redisTemplate(RedisConnectionFactory cf) {
         final RedisTemplate<String, Integer> redis = new RedisTemplate<>();

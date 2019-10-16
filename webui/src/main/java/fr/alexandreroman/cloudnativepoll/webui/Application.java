@@ -144,7 +144,7 @@ class VoteCache {
     }
 }
 
-@FeignClient(name = "cloudnativepoll-backend", fallback = BackendClientServiceFallback.class,
+@FeignClient(name = "backend", fallback = BackendClientServiceFallback.class,
         url = "${poll.backend}")
 interface BackendClientService {
     // OpenFeign is used to generate a runtime REST client: no RestTemplate / WebClient
