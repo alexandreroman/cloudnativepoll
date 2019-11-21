@@ -8,7 +8,7 @@ if [[ -d $PWD/maven && ! -d $HOME/.m2 ]]; then
   ln -s "$PWD/maven" "$HOME/.m2"
 fi
 
-cd repo/$MODULE
+cd $MODULE
 ../mvnw versions:set -DnewVersion=$VERSION && \
 ../mvnw -B package && \
 cp target/*.jar ../../build
