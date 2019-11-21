@@ -78,7 +78,7 @@ jobs:
         outputs:
           - name: build
         caches:
-          - path: .m2
+          - path: repo/maven
         run:
           path: "repo/ci/tasks/build.sh"
     - task: prerelease
