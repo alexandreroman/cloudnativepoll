@@ -2,7 +2,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, prometheus, env
+        include: health, info, prometheus, env, refresh
 
 spring:
   cloud:
