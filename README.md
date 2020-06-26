@@ -19,7 +19,7 @@ service registry.
 
 You need a JDK 8+ to build this app:
 ```bash
-$ ./mvwn clean package
+$ ./mvnw clean package
 ```
 
 ## Running locally
@@ -49,7 +49,7 @@ $ java -jar backend/target/cloudnativepoll-backend.jar
 
 Start the frontend:
 ```bash
-$ java -jar frontend/target/cloudnativepoll-webui.jar
+$ java -jar webui/target/cloudnativepoll-webui.jar
 ```
 
 The app is available at http://localhost:8080.
