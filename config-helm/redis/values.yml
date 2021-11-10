@@ -1,0 +1,12 @@
+# helm upgrade redis bitnami/redis -f config-helm/redis/values.yml --version 14.8.7 --install
+auth:
+  password: changeme
+metrics:
+  enabled: true
+master:
+  persistence:
+    size: 1Gi
+replica:
+  replicaCount: 1
+  persistence:
+    size: 1Gi

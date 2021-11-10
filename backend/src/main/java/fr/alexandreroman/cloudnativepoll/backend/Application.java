@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Pivotal Software, Inc.
+ * Copyright (c) 2021 VMware, Inc. or its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,22 @@
 package fr.alexandreroman.cloudnativepoll.backend;
 
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.stream.annotation.EnableBinding;
-import org.springframework.cloud.stream.annotation.Input;
-import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.messaging.SubscribableChannel;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,6 +40,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import static java.util.Objects.requireNonNullElse;
 
 @SpringBootApplication
 public class Application {
@@ -77,36 +78,28 @@ class VotesController {
     }
 }
 
-@Component
-@EnableBinding(Streams.class)
+@Configuration
 @RequiredArgsConstructor
 @Slf4j
 class VoteListener {
     private final Counter invalidVoteCounter;
-    private final Counter receivedVoteCounter;
     private final PollConfig config;
     private final RedisTemplate<String, Integer> redis;
 
-    @StreamListener(Streams.VOTES)
-    void onVote(Vote vote) {
-        log.info("Received new vote: {}", vote.getChoice());
-        receivedVoteCounter.increment();
+    @Bean
+    Consumer<Vote> onVote() {
+        return vote -> {
+            log.info("Received new vote: {}", vote.getChoice());
 
-        if (!config.getChoices().contains(vote.getChoice())) {
-            log.warn("Skip invalid vote: {}", vote.getChoice());
-            invalidVoteCounter.increment();
-        } else {
-            // The Redis server instance is updated as soon as we receive
-            // new vote through the RabbitMQ queue.
-            redis.opsForValue().increment(vote.getChoice());
-        }
-    }
-
-    @StreamListener(Streams.RESET)
-    void onReset() {
-        log.info("Resetting values");
-        // Just post an empty message to this queue to delete all votes.
-        redis.delete(config.getChoices());
+            if (!config.getChoices().contains(vote.getChoice())) {
+                log.warn("Skip invalid vote: {}", vote.getChoice());
+                invalidVoteCounter.increment();
+            } else {
+                // The Redis server instance is updated as soon as we receive
+                // new vote through the RabbitMQ queue.
+                redis.opsForValue().increment(vote.getChoice());
+            }
+        };
     }
 }
 
@@ -128,40 +121,28 @@ class RedisConfig {
 }
 
 @Configuration
+@RequiredArgsConstructor
 class MetricsConfig {
+    private final MeterRegistry reg;
+    private final PollConfig config;
+    private final RedisTemplate<String, Integer> redisTemplate;
+
     @Bean
-    Counter invalidVoteCounter(MeterRegistry reg) {
+    Counter invalidVotesCounter() {
         return Counter.builder("cloudnativepoll.votes.invalid")
                 .description("Number of invalid received votes")
                 .register(reg);
     }
 
-    @Bean
-    Counter receivedVoteCounter(MeterRegistry reg) {
-        return Counter.builder("cloudnativepoll.votes.received")
-                .description("Number of received votes")
-                .register(reg);
+    @EventListener(ApplicationReadyEvent.class)
+    public void registerReceivedVotesGauge() {
+        for (final String choice : config.getChoices()) {
+            final Supplier<Number> voteCountSupplier = () -> requireNonNullElse(redisTemplate.opsForValue().get(choice), 0);
+            Gauge.builder("cloudnativepoll.votes.received", voteCountSupplier)
+                    .description("Number of received votes")
+                    .tag("choice", choice)
+                    .baseUnit("votes")
+                    .register(reg);
+        }
     }
-}
-
-@Configuration
-class SecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .authorizeRequests()
-                .anyRequest().permitAll();
-    }
-}
-
-interface Streams {
-    String VOTES = "votes";
-
-    @Input(VOTES)
-    SubscribableChannel votes();
-
-    String RESET = "reset";
-
-    @Input(RESET)
-    SubscribableChannel reset();
 }

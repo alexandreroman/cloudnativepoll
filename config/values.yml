@@ -1,0 +1,30 @@
+#@data/values
+---
+#! Set application name.
+APP: cloudnativepoll
+
+#! Set target namespace.
+NAMESPACE: cloudnativepoll
+
+#! Set the public-facing domain used for accessing the application.
+DOMAIN: vote.example.com
+
+#! Set cert-manager cluster issuer to use when ingress TLS is enabled.
+CERT_MANAGER_CLUSTER_ISSUER: letsencrypt-prod
+
+#! Set Wavefront (Tanzu Observability) configuration when overlay is enabled.
+WAVEFRONT_API_TOKEN:
+WAVEFRONT_URI:
+WAVEFRONT_CLUSTER:
+
+#! Set sampling rate for Spring Cloud Sleuth.
+SPRING_CLOUD_SLEUTH_PROBABILITY: 0.1
+
+#! Set Redis configuration.
+REDIS_HOST: redis-master
+REDIS_PASSWORD: changeme
+
+#! Set RabbitMQ configuration.
+RABBITMQ_HOST: rabbitmq
+RABBITMQ_USERNAME: user
+RABBITMQ_PASSWORD: changeme

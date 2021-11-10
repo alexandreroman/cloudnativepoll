@@ -1,0 +1,46 @@
+#@ load("@ytt:data", "data")
+#@yaml/text-templated-strings
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+  namespace: #@ data.values.NAMESPACE
+  annotations:
+    #! This ConfigMap is versioned, since we want to restart pods which rely
+    #! on this object when there's an update.
+    kapp.k14s.io/versioned: ""
+data:
+  app.yml: |
+    poll:
+      question: Who's the most powerful Avenger?
+      choices:
+      - Iron Man
+      - Captain America
+      - Thor
+      - Captain Marvel
+      - CyclOps
+      images:
+      - https://images-na.ssl-images-amazon.com/images/S/cmx-images-prod/Item/24008/DEC100687_1._SX360_QL80_TTD_.jpg
+      - https://images-na.ssl-images-amazon.com/images/S/cmx-images-prod/Item/14688/14688._SX360_QL80_TTD_.jpg
+      - https://images-na.ssl-images-amazon.com/images/S/cmx-images-prod/Item/744376/744376._SX360_QL80_TTD_.jpg
+      - https://images-na.ssl-images-amazon.com/images/S/cmx-images-prod/Item/149220/149220._SX360_QL80_TTD_.jpg
+      - https://images-na.ssl-images-amazon.com/images/S/cmx-images-prod/Item/311759/311759._SX360_QL80_TTD_.jpg
+    server:
+      port: 8080
+    spring:
+      rabbitmq:
+        host: (@= data.values.RABBITMQ_HOST @)
+      redis:
+        host: (@= data.values.REDIS_HOST @)
+      sleuth:
+        sampler:
+          probability: (@= str(data.values.SPRING_CLOUD_SLEUTH_PROBABILITY) @)
+      cloud:
+        discovery:
+          client:
+            simple:
+              instances:
+                backend:
+                - service-id: backend
+                  uri: http://backend
