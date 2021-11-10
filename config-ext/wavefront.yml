@@ -1,0 +1,41 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+
+#@overlay/match by=overlay.subset({"kind": "Deployment", "metadata":{"name":"webui"}}),expects=1
+---
+spec:
+  template:
+    spec:
+      containers:
+      #@overlay/match by="name"
+      - name: webui
+        #@overlay/match missing_ok=True
+        envFrom:
+        - secretRef:
+            name: wavefront
+---
+#@overlay/match by=overlay.subset({"kind": "Deployment", "metadata":{"name":"backend"}}),expects=1
+---
+spec:
+  template:
+    spec:
+      containers:
+        #@overlay/match by="name"
+        - name: backend
+          #@overlay/match missing_ok=True
+          envFrom:
+            - secretRef:
+                name: wavefront
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wavefront
+  namespace: #@ data.values.NAMESPACE
+  annotations:
+    kapp.k14s.io/versioned: ""
+stringData:
+  MANAGEMENT_METRICS_EXPORT_WAVEFRONT_API-TOKEN: #@ data.values.WAVEFRONT_API_TOKEN
+  MANAGEMENT_METRICS_EXPORT_WAVEFRONT_URI: #@ data.values.WAVEFRONT_URI
+  MANAGEMENT_METRICS_EXPORT_WAVEFRONT_CLUSTER: #@ data.values.WAVEFRONT_CLUSTER
+  MANAGEMENT_METRICS_EXPORT_WAVEFRONT_ENABLED: "true"

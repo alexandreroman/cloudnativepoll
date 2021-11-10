@@ -3,21 +3,19 @@ management:
     web:
       exposure:
         include: health, info, prometheus, env
+  metrics:
+    export:
+      wavefront:
+        enabled: false
 
 spring:
   cloud:
     stream:
       bindings:
-        votes:
+        onVote-in-0:
           destination: cloudnativepoll.votes
           # Use a group to ensure a single app instance handles incoming messages.
           group: voter
-        reset:
-          destination: cloudnativepoll.reset
-          group: instance
-    services:
-      # Register this app with Netflix Eureka using the container or host IP address.
-      registrationMethod: direct
   redis:
     # Connect to a local Redis instance by default.
     host: localhost
@@ -25,6 +23,11 @@ spring:
 
 server:
   port: ${PORT:8081}
+
+wavefront:
+  application:
+    name: cloudnativepoll
+    service: backend
 
 poll:
   choices:

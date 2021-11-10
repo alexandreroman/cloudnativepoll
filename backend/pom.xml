@@ -3,27 +3,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.1.10.RELEASE</version>
+        <groupId>fr.alexandreroman.cloudnativepoll</groupId>
+        <artifactId>cloudnativepoll-parent</artifactId>
+        <version>1</version>
     </parent>
-    <groupId>fr.alexandreroman.cloudnativepoll</groupId>
     <artifactId>cloudnativepoll-backend</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>Cloud-native Poll - Backend</name>
     <description>Backend for the cloud-native poll app</description>
 
-    <properties>
-        <java.version>1.8</java.version>
-        <spring-cloud-services.version>2.1.4.RELEASE</spring-cloud-services.version>
-        <spring-cloud.version>Greenwich.SR4</spring-cloud.version>
-    </properties>
-
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -36,6 +25,10 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.wavefront</groupId>
+            <artifactId>wavefront-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>
@@ -53,16 +46,8 @@
         </dependency>
 
         <dependency>
-            <groupId>io.pivotal.spring.cloud</groupId>
-            <artifactId>spring-cloud-services-starter-config-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.pivotal.spring.cloud</groupId>
-            <artifactId>spring-cloud-services-starter-service-registry</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-zipkin</artifactId>
+            <artifactId>spring-cloud-starter-sleuth</artifactId>
         </dependency>
 
         <dependency>
@@ -99,25 +84,6 @@
         </dependency>
     </dependencies>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring-cloud.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.pivotal.spring.cloud</groupId>
-                <artifactId>spring-cloud-services-dependencies</artifactId>
-                <version>${spring-cloud-services.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
@@ -127,71 +93,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>azure</id>
-            <dependencies>
-                <dependency>
-                    <groupId>com.microsoft.azure</groupId>
-                    <artifactId>spring-cloud-starter-azure-spring-cloud-client</artifactId>
-                    <version>2.1.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.microsoft.azure</groupId>
-                    <artifactId>spring-cloud-azure-eventhubs-stream-binder</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter-config</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-                </dependency>
-                <dependency>
-                    <!-- RabbitMQ binder disabled -->
-                    <groupId>org.springframework.cloud</groupId>
-                    <artifactId>spring-cloud-stream-binder-rabbit</artifactId>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <!-- Pivotal Spring Cloud Services disabled -->
-                    <groupId>io.pivotal.spring.cloud</groupId>
-                    <artifactId>spring-cloud-services-starter-config-client</artifactId>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <!-- Pivotal Spring Cloud Services disabled -->
-                    <groupId>io.pivotal.spring.cloud</groupId>
-                    <artifactId>spring-cloud-services-starter-service-registry</artifactId>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.microsoft.azure</groupId>
-                        <artifactId>spring-cloud-azure-dependencies</artifactId>
-                        <version>1.1.0.RC5</version>
-                        <type>pom</type>
-                        <scope>import</scope>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
-            <repositories>
-                <repository>
-                    <id>nexus-snapshots</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-        </profile>
-    </profiles>
 </project>

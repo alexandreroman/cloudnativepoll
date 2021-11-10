@@ -1,0 +1,6 @@
+#@data/values
+---
+NAMESPACE: cloudnativepoll-dev
+DOMAIN: dev.vote.withtanzu.com
+CERT_MANAGER_CLUSTER_ISSUER: letsencrypt-staging
+SPRING_CLOUD_SLEUTH_PROBABILITY: 1.0

@@ -1,0 +1,8 @@
+# helm upgrade rabbitmq bitnami/rabbitmq -f config-helm/rabbitmq/values.yml --version 8.19.1 --install
+auth:
+  username: user
+  password: changeme
+metrics:
+  enabled: true
+persistence:
+  size: 1Gi

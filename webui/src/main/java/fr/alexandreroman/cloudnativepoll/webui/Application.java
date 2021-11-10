@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Pivotal Software, Inc.
+ * Copyright (c) 2021 VMware, Inc. or its affiliates
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.cloud.stream.annotation.EnableBinding;
-import org.springframework.cloud.stream.messaging.Source;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,6 +43,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.function.Supplier;
 
 import static java.util.Collections.emptyMap;
 
@@ -95,13 +95,12 @@ class IndexController {
 }
 
 @RestController
-@EnableBinding(Source.class)
 @RequiredArgsConstructor
 @Slf4j
 class VotesController {
     private final Counter castedVoteCounter;
     private final VoteCache cache;
-    private final Source source;
+    private final BlockingQueue<Message<VoteRequest>> requestQueue = new ArrayBlockingQueue<>(128);
 
     @GetMapping("/votes")
     Map<String, Integer> getVotes() {
@@ -111,13 +110,18 @@ class VotesController {
     @PostMapping("/votes")
     void castVote(@RequestBody VoteRequest req) {
         log.info("Casting vote: {}", req.getChoice());
-        source.output().send(MessageBuilder.withPayload(req).build());
+        requestQueue.offer(MessageBuilder.withPayload(req).build());
 
         // All votes are sent using a RabbitMQ queue to backend instances:
         // when no backend instance is available, votes are not lost since
         // these will be persisted in the queue until a backend instance becomes
         // available.
         castedVoteCounter.increment();
+    }
+
+    @Bean
+    Supplier<Message<VoteRequest>> voteQueueSource() {
+        return requestQueue::poll;
     }
 }
 
@@ -144,12 +148,10 @@ class VoteCache {
     }
 }
 
-@FeignClient(name = "backend", fallback = BackendClientServiceFallback.class,
-        url = "${poll.backend}")
+@FeignClient(name = "backend", fallback = BackendClientServiceFallback.class)
 interface BackendClientService {
-    // OpenFeign is used to generate a runtime REST client: no RestTemplate / WebClient
-    // is used. Circuit breaker support is provided by Hystrix (although there is no
-    // reference to Hystrix in the source code).
+    // OpenFeign is used to generate a runtime REST client:
+    // no RestTemplate / WebClient is used.
 
     @GetMapping("api/v1/votes")
     Map<String, Integer> getResults();
@@ -193,15 +195,5 @@ class MetricsConfig {
         return Counter.builder("cloudnativepoll.votes.casted")
                 .description("Number of casted votes")
                 .register(reg);
-    }
-}
-
-@Configuration
-class SecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .authorizeRequests()
-                .anyRequest().permitAll();
     }
 }

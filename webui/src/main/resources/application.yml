@@ -3,20 +3,27 @@ management:
     web:
       exposure:
         include: health, info, prometheus, env, refresh
+  metrics:
+    export:
+      wavefront:
+        enabled: false
 
 spring:
   cloud:
     stream:
       bindings:
-        output:
+        voteQueueSource-out-0:
           destination: cloudnativepoll.votes
-    services:
-      # Register this app with Netflix Eureka using the container or host IP address.
-      registrationMethod: direct
+    discovery:
+      client:
+        simple:
+          instances:
+            backend:
+              - service-id: backend
+                uri: http://localhost:8081
 
 feign:
-  hystrix:
-    # Enable Hystrix (circuit breaker) support in OpenFeign clients.
+  circuitbreaker:
     enabled: true
 
 logging:
@@ -25,9 +32,13 @@ logging:
       alexandreroman:
         cloudnativepoll: INFO
 
+wavefront:
+  application:
+    name: cloudnativepoll
+    service: webui
+
 poll:
-  backend: ""
-  refresh: 1000
+  refresh: 250
   question: Who's the most powerful Avenger?
   choices:
     - Iron Man
